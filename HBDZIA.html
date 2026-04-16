@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Sia 🩵</title>
+    <style>
+        /* 🎨 โทนสีฟ้าอ่อน + ครีม ตามที่สั่งเป๊ะ */
+        body { 
+            background-color: #fdf5e6; /* สีเนื้อครีม */
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            font-family: 'Kanit', sans-serif; 
+            color: #5d93b3; 
+        }
+
+        .container { 
+            background: #ffffff; 
+            padding: 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 10px 25px rgba(93, 147, 179, 0.1); 
+            text-align: center; 
+            border: 5px solid #e0f2f7; /* สีฟ้าอ่อนมากๆ */
+            max-width: 400px;
+            width: 85%;
+        }
+
+        h1 { color: #87ceeb; font-size: 28px; margin-bottom: 10px; }
+        .sub-text { color: #b0c4de; font-size: 14px; margin-bottom: 30px; }
+
+        /* 🎂 อุปกรณ์ประกอบฉาก */
+        .gift-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.05)); }
+
+        /* 🎤 ปุ่มเริ่ม */
+        .start-btn { 
+            background-color: #87ceeb; 
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.3);
+        }
+        .start-btn:hover { background-color: #5d93b3; transform: scale(1.05); }
+
+        /* 💌 จดหมายลับ */
+        #letter-box { 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 1.5s ease; 
+            background: #f0f8ff; 
+            padding: 20px; 
+            border-radius: 15px; 
+            text-align: left; 
+            line-height: 1.6;
+            border-left: 5px solid #87ceeb;
+        }
+
+        .highlight-name { color: #5d93b3; font-weight: bold; font-size: 22px; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-content">
+        <div class="gift-icon">🎁</div>
+        <h1>ถึง... <span class="highlight-name">เซีย</span></h1>
+        <p class="sub-text">มีอะไรบางอย่างซ่อนอยู่ในนี้แหละ</p>
+        
+        <div id="interaction-zone">
+            <p style="margin-bottom: 20px;">👇 กดปุ่มแล้วลองเป่าไมค์ดูนะ 👇</p>
+            <button class="start-btn" onclick="startMic()">เปิดกล่องของขวัญ 🩵</button>
+        </div>
+
+        <div id="letter-box">
+            <p>ถึง <b>เซีย</b>...</p>
+            <p>ยินดีด้วยนะ! มึงเปิดกล่องนี้สำเร็จแล้ว (ด้วยการเป่า 555)</p>
+            <p>ขอให้เป็นวันที่ดีของเซียนะ มีความสุขมากๆ สดใสเหมือนสีฟ้าที่มึงชอบเลย มีอะไรก็บอกกันได้เสมอเพื่อน!</p>
+            <p style="text-align: right; font-weight: bold;">- จากเพื่อนคนเดิม -</p>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="HBD.mp3" type="audio/mpeg">
+    </audio>
+
+<script>
+    const music = document.getElementById('bg-music');
+
+    function startMic() {
+        // เริ่มเล่นเพลงทันที
+        music.play().catch(e => console.log("Music play blocked"));
+        
+        document.querySelector('.start-btn').style.display = 'none';
+        document.querySelector('#interaction-zone p').innerText = "🎤 เป่าลมใส่ไมค์แรงๆ เลยเซีย!";
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            const audioCtx = new AudioContext();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const processor = audioCtx.createScriptProcessor(2048, 1, 1);
+
+            source.connect(analyser);
+            analyser.connect(processor);
+            processor.connect(audioCtx.destination);
+
+            processor.onaudioprocess = () => {
+                const array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                const vol = array.reduce((a, b) => a + b) / array.length;
+
+                if (vol > 40) { // เมื่อเป่าแรงพอ
+                    showLetter();
+                    stream.getTracks().forEach(track => track.stop()); // ปิดไมค์หลังใช้เสร็จ
+                }
+            };
+        });
+    }
+
+    function showLetter() {
+        document.getElementById('interaction-zone').style.display = 'none';
+        const letter = document.getElementById('letter-box');
+        letter.style.display = 'block';
+        setTimeout(() => { letter.style.opacity = '1'; }, 100);
+    }
+</script>
+
+</body>
+</html>
