@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Sia 🩵</title>
+    <style>
+        /* 🎨 โทนสีฟ้าอ่อน + ครีม ตามที่สั่งเป๊ะ */
+        body { 
+            background-color: #fdf5e6; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            font-family: 'Kanit', sans-serif; 
+            color: #5d93b3; 
+        }
+
+        .container { 
+            background: #ffffff; 
+            padding: 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 10px 25px rgba(93, 147, 179, 0.1); 
+            text-align: center; 
+            border: 5px solid #e0f2f7; 
+            max-width: 400px;
+            width: 85%;
+        }
+
+        .candle-icon { font-size: 80px; margin-bottom: 20px; transition: 0.5s; }
+
+        .start-btn { 
+            background-color: #87ceeb; 
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.3);
+        }
+        .start-btn:hover { background-color: #5d93b3; transform: scale(1.05); }
+
+        #letter-box { 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 1.5s ease; 
+            background: #f0f8ff; 
+            padding: 20px; 
+            border-radius: 15px; 
+            text-align: left; 
+            line-height: 1.6;
+            border-left: 5px solid #87ceeb;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="candle-zone">
+            <div class="candle-icon" id="candle">🕯️</div>
+            <p id="instruction" style="margin-bottom: 20px; font-weight: bold;">เป่าเทียนสิ</p>
+            <button class="start-btn" onclick="startMic()">เริ่มเป่า 🩵</button>
+        </div>
+
+        <div id="letter-box">
+            <p>HBD นะเพื่อนมีความสุขมากๆ คิดอะไรก็ขอให้ได้แบบที่คิด มีเป้าหมายในชีวิตและความมั่นใจในตัวเองมากขึ้น พบเจอแต่เพื่อนใหม่ๆที่ดี และในทุกๆวันของมึงขอให้พบเจอแต่เรื่องราวดีๆ</p>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="HBD.mp3" type="audio/mpeg">
+    </audio>
+
+<script>
+    const music = document.getElementById('bg-music');
+
+    function startMic() {
+        music.play().catch(e => console.log("Music blocked"));
+        document.querySelector('.start-btn').style.display = 'none';
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            const audioCtx = new AudioContext();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const processor = audioCtx.createScriptProcessor(2048, 1, 1);
+
+            source.connect(analyser);
+            analyser.connect(processor);
+            processor.connect(audioCtx.destination);
+
+            processor.onaudioprocess = () => {
+                const array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                const vol = array.reduce((a, b) => a + b) / array.length;
+
+                if (vol > 45) { // เมื่อเป่าแรงพอ
+                    showLetter();
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            };
+        });
+    }
+
+    function showLetter() {
+        document.getElementById('candle').innerText = "✨"; // เปลี่ยนเทียนเป็นแสงวิ้งๆ
+        document.getElementById('instruction').style.display = 'none';
+        const letter = document.getElementById('letter-box');
+        letter.style.display = 'block';
+        setTimeout(() => { letter.style.opacity = '1'; }, 100);
+    }
+</script>
+
+</body>
+</html>
